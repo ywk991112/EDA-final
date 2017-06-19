@@ -4,15 +4,52 @@
 #include "graph.h"
 using namespace std;
 
+/*******************************
+ *                             *
+ *            Node             *
+ *                             *
+ *******************************/
+Node::Node() {
+  this->type = none;
+  this->viaUp = false;
+  this->viaDown = false;
+}
+
+void
+Node::setType(NodeType nt) {
+  this->type = nt;
+}
+
+NodeType
+Node::getType() {
+  return this->type;
+}
+
+void
+Node::setViaPos(Pos pos) {
+  if(pos == up)
+    this->viaUp = true;
+  else if(pos == down)
+    this->viaDown = false;
+}
+
+Pos
+Node::getViaPos() {
+  if(this->viaUp == true)
+    return up;
+  else if(this->viaDown)
+    return down;
+  else
+    return no;
+}
+
+/*******************************
+ *                             *
+ *            Graph            *
+ *                             *
+ *******************************/
 Graph::Graph(const char* filename) {
   this->parseCase(filename);
-  this->graph = new Node**[this->width];
-  for(int i = 0; i < this->width; ++i) {
-    this->graph[i] = new Node*[this->length];
-    for(int j = 0; j < this->length; j++) {
-      this->graph[i][j] = new Node[this->height];
-    }
-  }
 }
 
 Graph::~Graph() {
@@ -93,6 +130,14 @@ Graph::parseLine(string line, int l) {
       break;
     case 3:
       this->height = stoi(line);
+      this->graph = new Node**[this->width];
+      // open three dimensional graph
+      for(int i = 0; i < this->width; ++i) {
+        this->graph[i] = new Node*[this->length];
+        for(int j = 0; j < this->length; j++) {
+          this->graph[i][j] = new Node[this->height];
+        }
+      }
       break;
     case 4:
       this->nShapes = stoi(line);
@@ -135,13 +180,14 @@ Graph::parseShape(string line) {
     s[i]= line.substr(0, line.find(" "));
     line = line.erase(0, line.find(" ")+1);
   }
-  int layer = stoi(s[0].substr(1, s[0].size()));
+  int layer = stoi(s[0].substr(1, s[0].size()))-1;
   int* tuple1 = parseTuple(s[1]);
   int* tuple2 = parseTuple(s[2]);
   //TODO: i should be tuple1[0] - this->llx
-  for(int i = tuple1[0]; i <= tuple1[1]; ++i) {
-    for(int j = tuple2[0]; j <= tuple2[1]; ++j) {
+  for(int i = tuple1[0]; i <= tuple2[0]; ++i) {
+    for(int j = tuple1[1]; j <= tuple2[1]; ++j) {
       //TODO: set Node
+      graph[i][j][layer].setType(shape);
     }
   }
   //TODO: record center
@@ -157,10 +203,12 @@ Graph::parseVia(string line) {
     s[i]= line.substr(0, line.find(" "));
     line = line.erase(0, line.find(" ")+1);
   }
-  int layer = stoi(s[0].substr(1, s[0].size()));
+  int layer = stoi(s[0].substr(1, s[0].size()))-1;
   int* tuple = parseTuple(s[1]);
   //TODO: i should be tuple1[0] - this->llx
   //TODO: record via 
+  graph[tuple[0]][tuple[1]][layer].setViaPos(down);
+  graph[tuple[0]][tuple[1]][layer+1].setViaPos(up);
   delete [] tuple;
 }
 
@@ -172,18 +220,31 @@ Graph::parseObstacle(string line) {
     s[i]= line.substr(0, line.find(" "));
     line = line.erase(0, line.find(" ")+1);
   }
-  int layer = stoi(s[0].substr(1, s[0].size()));
+  int layer = stoi(s[0].substr(1, s[0].size()))-1;
   int* tuple1 = parseTuple(s[1]);
   int* tuple2 = parseTuple(s[2]);
   //TODO: i should be tuple1[0] - this->llx
-  for(int i = tuple1[0]; i <= tuple1[1]; ++i) {
-    for(int j = tuple2[0]; j <= tuple2[1]; ++j) {
+  for(int i = tuple1[0]; i <= tuple2[0]; ++i) {
+    for(int j = tuple1[1]; j <= tuple2[1]; ++j) {
       //TODO: set Node
+      graph[i][j][layer].setType(obstacle);
     }
   }
   //TODO: record center
   delete [] tuple1;
   delete [] tuple2;
+}
+
+
+// z should be layer-1 (i.e. M1 -> layer 0)
+NodeType 
+Graph::getNodeType(int x, int y, int z) {
+  return graph[x][y][z].getType();
+}
+
+Pos
+Graph::getViaPos(int x, int y, int z) {
+  return graph[x][y][z].getViaPos();
 }
 
 void

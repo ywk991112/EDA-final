@@ -1,21 +1,28 @@
-#ifndef GRAPH_H
-#define GRAPH_H
+#ifndef _GRAPH_H_
+#define _GRAPH_H_
  
-#include <algorithm>
 #include <vector>
-#include <map>
 #include <string>
-#include <cstring>
 #include <fstream>
  
 using namespace std;
+
+enum NodeType{none, shape, obstacle};
+enum Pos{no, up, down};
  
 class Node{
  public:
-  Node* rightNode;
-  Node* leftNode;
-  Node* upNode;
-  Node* downNode;
+  Node();
+
+  void setType(NodeType);
+  NodeType getType();
+  void setViaPos(Pos);
+  Pos getViaPos();
+
+ private:
+  NodeType type;
+  bool viaUp;
+  bool viaDown;
 };
  
 class Graph{
@@ -31,6 +38,9 @@ class Graph{
   void parseObstacle(string);
   int* parseTuple(string);
 
+  // node
+  NodeType getNodeType(int, int, int);
+  Pos getViaPos(int, int, int);
   // test
   void testParse();
 
@@ -48,6 +58,7 @@ class Graph{
   int nVias;
   int nObstacles;
   Node*** graph;
+  vector<int*> shapeCenter;
 };
 
 #endif
