@@ -1,3 +1,6 @@
+#define DEBUG
+
+#include <assert.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -5,12 +8,46 @@
 #include "graph.h"
 using namespace std;
 
+//return the central of the block
 int* Block::central()
 {
   int* central = new int[2];
   central[0] = (LLx +URx)/2;
   central[1] = (LLy +URy)/2;
   return central;
+}
+
+//return this is overlap to shape?
+bool Block::is_overlap(Block shape)
+{
+  if((this->LLx <= shape.URx && this->LLy <= shape.URy
+     || this->LLx <= shape.URx && this->URy >= shape.LLy
+     || this->URx >= shape.LLx && this->LLy <= shape.URy
+     || this->URx >= shape.LLx && this->URy >= shape.LLy)
+     && this->Layer == shape.Layer)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+//return this is connect to via?
+bool Block::is_connect(Block via)
+{
+  assert(via.LLx == via.URx && via.LLy == via.URy);
+  if(this->LLx <= via.LLx && this->LLy <= via.LLy
+     && this->URx >= via.URx && this->URy >= via.URy
+     && (this->Layer == via.Layer|| this->Layer == via.Layer+1))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 netParser::netParser()
@@ -45,7 +82,7 @@ netParser::openDofile(const string& dof)
       }
       this->parseLine(line, i);
     }
-    // WARNING: crash if number defined previosly differs
+    // WARNING: crash if number doesn't match
     // RoutedShape
     for(int i = 0; i < this->nShapes; ++i)
     {
@@ -169,7 +206,7 @@ netParser::parseShape(string line) {
   int* tuple2 = parseTuple(s[2]);
   
   Block new_shape(tuple1[0], tuple1[1], tuple2[0], tuple2[1], layer);
-  Shapes_vector.push_back(new_shape);
+  this->Shapes_vector.push_back(new_shape);
   
   delete [] tuple1;
   delete [] tuple2;
@@ -187,7 +224,7 @@ netParser::parseVia(string line) {
   int* tuple = parseTuple(s[1]);
   
   Block new_Vias(tuple[0], tuple[1], tuple[0], tuple[1], layer);
-  Vias_vector.push_back(new_Vias);
+  this->Vias_vector.push_back(new_Vias);
   
   delete [] tuple;
 }
@@ -205,7 +242,7 @@ netParser::parseObstacle(string line) {
   int* tuple2 = parseTuple(s[2]);
   
   Block new_obstacle(tuple1[0], tuple1[1], tuple2[0], tuple2[1], layer);
-  Vias_vector.push_back(new_obstacle);
+  this->Obstacles_vector.push_back(new_obstacle);
   
   delete [] tuple1;
   delete [] tuple2;
@@ -226,3 +263,76 @@ ostream& operator << (ostream& out, const netParser& netMgr)
   out <<  "nVias : "      <<  netMgr.nVias      << endl;   
   out <<  "nObstacles : " <<  netMgr.nObstacles << endl;                   
 }                                      
+
+void netParser::global_routing()
+{
+  //construct graph
+  Graph shape_graph(this->nShapes);
+  
+  //each shape is a node
+  for(int i = 0; i < this->Shapes_vector.size(); ++i)
+  {
+#ifdef DEBUG
+    cout << "Shape " << i << " add into graph as node ("
+         << this->Shapes_vector[i].central()[0] << "," << this->Shapes_vector[i].central()[1] << ")\n";
+#endif
+    Node new_node(this->Shapes_vector[i].central());
+    shape_graph.add_node(new_node);
+  }
+  
+  //fill the weight table
+  shape_graph.set_weight_table();
+#ifdef DEBUG
+  cout << "The weight table (begining):" << endl;
+  shape_graph.print_weight();
+#endif
+  
+  //remove wieght of overlap shape
+  //BUGSSSSSSSSSSSSSSSSs, multiple overlap case
+  vector<int> ovelap_shape;
+  for(int i = 0; i < this->Shapes_vector.size(); ++i)
+  {
+    ovelap_shape.clear();
+    for(int j = i+1; j < this->Shapes_vector.size(); ++j)
+    {
+      if(this->Shapes_vector[j].is_overlap(this->Shapes_vector[i]))
+      {
+        ovelap_shape.push_back(j);
+      }
+    }
+    int tmp1 = ovelap_shape[0], tmp2 = ovelap_shape[1];
+    shape_graph.set_weight(tmp1, tmp2, 0);
+  }
+#ifdef DEBUG
+  cout << "The weight table (remove overlap):" << endl;
+  shape_graph.print_weight();
+#endif
+  
+  //remove wieght of shapes that connect by via
+  vector<int> connected_shape;
+  for(int i = 0; i < this->Vias_vector.size(); ++i)
+  {
+    connected_shape.clear();
+    for(int j = 0; j < this->Shapes_vector.size(); ++j)
+    {
+      if(this->Shapes_vector[j].is_connect(this->Vias_vector[i]))
+      {
+        connected_shape.push_back(j);
+      }
+    }
+    assert(connected_shape.size() == 2);
+    int tmp1 = connected_shape[0], tmp2 = connected_shape[1];
+    shape_graph.set_weight(tmp1, tmp2, 0);
+  }
+#ifdef DEBUG
+  cout << "The weight table (remove via):" << endl;
+  shape_graph.print_weight();
+#endif
+
+  //solve MST by Prim
+}
+
+void netParser::detailed_routing()
+{
+  
+}

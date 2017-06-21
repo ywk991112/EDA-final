@@ -14,6 +14,8 @@ class Block{
     Block(int llx, int lly, int urx, int ury, int layer) : LLx(llx), LLy(lly), URx(urx), URy(ury), Layer(layer) {};
     ~Block() {};
     int* central();
+    bool is_overlap(Block);
+    bool is_connect(Block);
   
   private:
     int LLx, LLy, URx, URy;
@@ -59,7 +61,7 @@ class netParser{
     
     vector<Block> Shapes_vector;
     vector<Block> Vias_vector;
-    vector<Block> obstacles_vector;
+    vector<Block> Obstacles_vector;
     vector<Block> wires_vector;
 };
 

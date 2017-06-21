@@ -1,6 +1,5 @@
 #include <iostream>
 #include "netParser.h"
-#include "graph.h"
 using namespace std;
 
 netParser netMgr;
@@ -32,13 +31,12 @@ int main(int argc, char* argv[])
   {
     cout << "Reading file \"" << argv[1] << "\"\n";
   }
-#if 0
+#if 1
   cout << "*************************************\n"
        << "Reporting netMgr\n\n"
        << netMgr
        << "\nEnd reporting netMgr\n"
        << "*************************************\n";
-  return 0;
 #endif
 
   cout << "Start global routing\n";
@@ -46,5 +44,6 @@ int main(int argc, char* argv[])
 
   cout << "Start detailed routing\n";
   netMgr.detailed_routing();
+  return 0;
 
 }
