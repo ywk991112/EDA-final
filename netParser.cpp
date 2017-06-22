@@ -20,10 +20,14 @@ int* Block::central()
 //return this is overlap to shape?
 bool Block::is_overlap(Block shape)
 {
-  if((this->LLx <= shape.URx && this->LLy <= shape.URy
-     || this->LLx <= shape.URx && this->URy >= shape.LLy
-     || this->URx >= shape.LLx && this->LLy <= shape.URy
-     || this->URx >= shape.LLx && this->URy >= shape.LLy)
+#if(0)
+  if(((this->LLx <= shape.LLx && shape.LLx <= this->URx && this->URx <= shape.URx  &&  shape.LLy <= this->LLy && this->LLy <= shape.URy && shape.URy <= this->URy)
+     || (shape.LLx <= this->LLx && this->LLx <= shape.URx && shape.URx <= this->URx  &&  this->LLy <= shape.LLy && shape.LLy <= this->URy && this->URy <= shape.URx)
+     || (this->LLx <= shape.LLx && shape.LLx <= this->URx && this->URx <= shape.URx  &&  this->LLy <= shape.LLy && shape.LLy <= this->URy && this->URy <= shape.URx)
+     || (shape.LLx <= this->LLx && this->LLx <= shape.URx && shape.URx <= this->URx  &&  shape.LLy <= this->LLy && this->LLy <= shape.URy && shape.URy <= this->URy))
+     && this->Layer == shape.Layer)
+#endif
+  if(!(this->URx <= shape.LLx || shape.URx <= this->LLx || this->URy <= shape.LLy || shape.URy <= this->LLy)
      && this->Layer == shape.Layer)
   {
     return true;
@@ -288,11 +292,11 @@ void netParser::global_routing()
 #endif
   
   //remove wieght of overlap shape
-  //BUGSSSSSSSSSSSSSSSSs, multiple overlap case
   vector<int> ovelap_shape;
   for(int i = 0; i < this->Shapes_vector.size(); ++i)
   {
     ovelap_shape.clear();
+    ovelap_shape.push_back(i);
     for(int j = i+1; j < this->Shapes_vector.size(); ++j)
     {
       if(this->Shapes_vector[j].is_overlap(this->Shapes_vector[i]))
@@ -300,8 +304,16 @@ void netParser::global_routing()
         ovelap_shape.push_back(j);
       }
     }
-    int tmp1 = ovelap_shape[0], tmp2 = ovelap_shape[1];
-    shape_graph.set_weight(tmp1, tmp2, 0);
+    if(ovelap_shape.size() != 1)
+    {
+      for(int m = 0; m < ovelap_shape.size(); ++m)
+      {
+        for(int n = m+1; n < ovelap_shape.size(); ++n)
+        {
+          shape_graph.set_weight(ovelap_shape[m], ovelap_shape[n], 0);
+        }
+      }
+    }
   }
 #ifdef DEBUG
   cout << "The weight table (remove overlap):" << endl;
@@ -320,9 +332,16 @@ void netParser::global_routing()
         connected_shape.push_back(j);
       }
     }
-    assert(connected_shape.size() == 2);
-    int tmp1 = connected_shape[0], tmp2 = connected_shape[1];
-    shape_graph.set_weight(tmp1, tmp2, 0);
+    if(connected_shape.size() >= 2)
+    {
+      for(int m = 0; m < connected_shape.size(); ++m)
+      {
+        for(int n = m+1; n < connected_shape.size(); ++n)
+        {
+          shape_graph.set_weight(connected_shape[m], connected_shape[n], 0);
+        }
+      }
+    }
   }
 #ifdef DEBUG
   cout << "The weight table (remove via):" << endl;
