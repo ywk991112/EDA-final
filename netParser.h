@@ -13,8 +13,7 @@ class Block{
   public:
     Block(int llx, int lly, int urx, int ury, int layer) : LLx(llx), LLy(lly), URx(urx), URy(ury), Layer(layer) {};
     ~Block() {};
-    int* central();
-    bool is_overlap(Block);
+    int* node_parameters();
     bool is_connect(Block);
   
   private:

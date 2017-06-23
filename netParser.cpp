@@ -8,34 +8,16 @@
 #include "graph.h"
 using namespace std;
 
-//return the central of the block
-int* Block::central()
+//return the node_parameters of the block
+int* Block::node_parameters()
 {
-  int* central = new int[2];
-  central[0] = (LLx +URx)/2;
-  central[1] = (LLy +URy)/2;
-  return central;
-}
-
-//return this is overlap to shape?
-bool Block::is_overlap(Block shape)
-{
-#if(0)
-  if(((this->LLx <= shape.LLx && shape.LLx <= this->URx && this->URx <= shape.URx  &&  shape.LLy <= this->LLy && this->LLy <= shape.URy && shape.URy <= this->URy)
-     || (shape.LLx <= this->LLx && this->LLx <= shape.URx && shape.URx <= this->URx  &&  this->LLy <= shape.LLy && shape.LLy <= this->URy && this->URy <= shape.URx)
-     || (this->LLx <= shape.LLx && shape.LLx <= this->URx && this->URx <= shape.URx  &&  this->LLy <= shape.LLy && shape.LLy <= this->URy && this->URy <= shape.URx)
-     || (shape.LLx <= this->LLx && this->LLx <= shape.URx && shape.URx <= this->URx  &&  shape.LLy <= this->LLy && this->LLy <= shape.URy && shape.URy <= this->URy))
-     && this->Layer == shape.Layer)
-#endif
-  if(!(this->URx <= shape.LLx || shape.URx <= this->LLx || this->URy <= shape.LLy || shape.URy <= this->LLy)
-     && this->Layer == shape.Layer)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  int* node_parameters = new int[3];
+  node_parameters[0] = LLx;
+  node_parameters[1] = LLy;
+  node_parameters[2] = URx;
+  node_parameters[3] = URy;
+  node_parameters[4] = Layer;
+  return node_parameters;
 }
 
 //return this is connect to via?
@@ -277,10 +259,9 @@ void netParser::global_routing()
   for(int i = 0; i < this->Shapes_vector.size(); ++i)
   {
 #ifdef DEBUG
-    cout << "Shape " << i << " add into graph as node ("
-         << this->Shapes_vector[i].central()[0] << "," << this->Shapes_vector[i].central()[1] << ")\n";
+    cout << "Shape " << i << " add into graph as node\n";
 #endif
-    Node new_node(this->Shapes_vector[i].central());
+    Node new_node(this->Shapes_vector[i].node_parameters(), this->viaCost);
     shape_graph.add_node(new_node);
   }
   
@@ -288,35 +269,6 @@ void netParser::global_routing()
   shape_graph.set_weight_table();
 #ifdef DEBUG
   cout << "The weight table (begining):" << endl;
-  shape_graph.print_weight();
-#endif
-  
-  //remove wieght of overlap shape
-  vector<int> ovelap_shape;
-  for(int i = 0; i < this->Shapes_vector.size(); ++i)
-  {
-    ovelap_shape.clear();
-    ovelap_shape.push_back(i);
-    for(int j = i+1; j < this->Shapes_vector.size(); ++j)
-    {
-      if(this->Shapes_vector[j].is_overlap(this->Shapes_vector[i]))
-      {
-        ovelap_shape.push_back(j);
-      }
-    }
-    if(ovelap_shape.size() != 1)
-    {
-      for(int m = 0; m < ovelap_shape.size(); ++m)
-      {
-        for(int n = m+1; n < ovelap_shape.size(); ++n)
-        {
-          shape_graph.set_weight(ovelap_shape[m], ovelap_shape[n], 0);
-        }
-      }
-    }
-  }
-#ifdef DEBUG
-  cout << "The weight table (remove overlap):" << endl;
   shape_graph.print_weight();
 #endif
   
@@ -349,6 +301,9 @@ void netParser::global_routing()
 #endif
 
   //solve MST by Prim
+  shape_graph.PRIM_build_edges();
+  
+  //TODO: construct wires by edges
 }
 
 void netParser::detailed_routing()

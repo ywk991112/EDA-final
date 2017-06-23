@@ -6,20 +6,28 @@ using namespace std;
 class Node
 {
 	public:
-		Node(int* central = 0) : X(central[0]), Y(central[1]) {};
+		Node(int* shape = 0, int viaCost = 0)
+		{
+			LLx = shape[0];
+			LLy = shape[1];
+			URx = shape[2];
+			URy = shape[3];
+			Layer = shape[4] * viaCost;
+		};
 		~Node() {};
-		int weight_to_node(Node);
+		int weight_to_node(Node*);
 	private:
-		int X, Y;
+		int Layer;
+		int LLx, LLy, URx, URy;
 };
 
 class Edge
 {
 	public:
 		Edge();
-		~Edge();
+		~Edge() {};
 	private:
-		Node* nodes;
+		Node nodes[2];
 };
 
 class Graph
@@ -29,9 +37,11 @@ class Graph
 		~Graph();
 	
 		void add_node(Node);
+		void add_edge(Edge);
 		void set_weight_table();
 		void set_weight(int, int, int);
 		void print_weight();
+		void PRIM_build_edges();
 	private:
 		int nShape;
 		vector<Node> nodes;
