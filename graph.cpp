@@ -33,8 +33,10 @@ int Node::weight_to_node(Node* n)
 	return weight;
 }
 
-Edge::Edge()
+Edge::Edge(int n1, int n2)
 {
+	node[0] = n1;
+	node[1] = n2;
 }
 
 Graph::Graph(int n)
@@ -193,10 +195,15 @@ void Graph::PRIM_build_edges()
 	for(int i = 1; i < nodes.size(); ++i)
 	{
 		cout << "node " << i << " connect to node " << predecessor[i] << " with weight " << key[i] << endl;
-		//TODO: construct edge
 	}
-	cout << this->edges.size()<<endl;
 #endif
+
+	//construct edges
+	for(int i = 1; i < nodes.size(); ++i)
+	{
+		Edge new_edge(i, predecessor[i]);
+		this->edges.push_back(new_edge);
+	}
 }
 
 
