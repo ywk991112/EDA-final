@@ -24,10 +24,10 @@ class Node
 class Edge
 {
 	public:
-		Edge();
+		Edge(int, int);
 		~Edge() {};
 	private:
-		Node nodes[2];
+		int node[2];
 };
 
 class Graph
