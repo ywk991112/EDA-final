@@ -42,7 +42,7 @@ A_star::setNodeType(int llx, int lly, int urx, int ury, int layer, nodeType t) {
 
 void
 A_star::push2OpenList(NT t) {
-  A_star_node* n = &graph[get<0>t][get<1>t][get<2>t];
+  A_star_node* n = &graph[get<0>(t)][get<1>(t)][get<2>(t)];
   if(n->open) return; //node is already in open list
   n->setOpen(true);
   openList.push_back(t);
@@ -57,7 +57,7 @@ A_star::setTarget(int target_x, int target_y, int target_z) {
         int x_dif = abs(target_x - i);
         int y_dif = abs(target_y - j);
         int z_dif = abs(target_z - k);
-        this->graph[i][j][k].setH(x_dif, y_dif, z_dif);
+        this->graph[i][j][k].setH(x_dif, y_dif, z_dif, this->viaCost);
       }
     }
   }
@@ -73,9 +73,9 @@ A_star::setSource(int x, int y, int z) {
  **************************************/
 // return true if update a target node
 bool
-A_star::updateG(NT t, int G, A_star_node* parent) {
+A_star::updateG(NT t, int G, NT* parent) {
   push2OpenList(t);
-  A_star_node* n = &graph[get<0>t][get<1>t][get<2>t];
+  A_star_node* n = &graph[get<0>(t)][get<1>(t)][get<2>(t)];
   n->setG(G, parent);
   if(t == target) {
     return true;
@@ -84,9 +84,9 @@ A_star::updateG(NT t, int G, A_star_node* parent) {
 }
 
 bool
-A_star::checkValid(NT t, int G, A_star_node* parent) {
+A_star::checkValid(NT t, int G, NT parent) {
   //check out of range
-  int x = get<0>t, y = get<1>t, z = get<2>t;
+  int x = get<0>(t), y = get<1>(t), z = get<2>(t);
   if(x < 0 || y < 0 || z < 0 || x >= width || y >= length || z >= height) //TODO:check width, length, height in code >= not >
     return false;
   //check obstacle
@@ -97,15 +97,14 @@ A_star::checkValid(NT t, int G, A_star_node* parent) {
 
 bool
 A_star::forAllNeighbor(NT t) {
-  A_star_node* n = &graph[get<0>t][get<1>t][get<2>t];
-  same_layer = vector< NT > s;
-  dif_layer  = vector< NT > d;
-  same_layer.push_back(make_tuple(get<0>t+1, get<1>t, get<2>t));
-  same_layer.push_back(make_tuple(get<0>t-1, get<1>t, get<2>t));
-  same_layer.push_back(make_tuple(get<0>t, get<1>t+1, get<2>t));
-  same_layer.push_back(make_tuple(get<0>t, get<1>t-1, get<2>t));
-  auto up    = make_tuple(get<0>t, get<1>t, get<2>t+1);
-  auto down  = make_tuple(get<0>t, get<1>t, get<2>t-1);
+  vector< NT > same_layer;
+  vector< NT > dif_layer;
+  same_layer.push_back(make_tuple(get<0>(t+1), get<1>(t), get<2>(t)));
+  same_layer.push_back(make_tuple(get<0>(t-1), get<1>(t), get<2>(t)));
+  same_layer.push_back(make_tuple(get<0>(t), get<1>(t+1), get<2>(t)));
+  same_layer.push_back(make_tuple(get<0>(t), get<1>(t-1), get<2>(t)));
+  dif_layer.push_back(make_tuple(get<0>(t), get<1>(t), get<2>(t+1)));
+  dif_layer.push_back(make_tuple(get<0>(t), get<1>(t), get<2>(t-1)));
   //Only if target, checkValid = true
   for(auto& node : same_layer) {
     int newG = a->getG() + 1;
@@ -119,8 +118,8 @@ A_star::forAllNeighbor(NT t) {
 
 void
 A_star::compareNode(NT a, NT b) {
-  int ax = get<0>a, ay = get<1>a, az = get<2>a;
-  int bx = get<0>b, by = get<1>b, bz = get<2>b;
+  int ax = get<0>(a), ay = get<1>(a), az = get<2>(a);
+  int bx = get<0>(b), by = get<1>(b), bz = get<2>(b);
   int aF = graph[ax][ay][az].getF();
   int bF = grbph[bx][by][bz].getF();
   return (aF > bF);
@@ -128,7 +127,7 @@ A_star::compareNode(NT a, NT b) {
 
 void
 A_star::runAlgorithm() {
-  while(!openList.empty) {
+  while(!openList.empty()) {
     sort(openList.begin(), openList.end(), compareNode);
     A_star_node* start = openList.back();
     openList.pop_back();
@@ -146,7 +145,7 @@ A_star::runAlgorithm() {
 A_star_node::A_star_node() {
   this->open = false;
   this->type = none;
-  this->parent = NULL;
+  this->parent = IT;
   this->H = INT_MAX; this->G = INT_MAX;
 }
 
@@ -185,7 +184,7 @@ A_star_node::getOpen() {
 }
 
 void
-A_star_node::setG(int G, A_star_node* from) {
+A_star_node::setG(int G, NT from) {
   if(this->G > G) {
     this->parent = from;
     this->G = G;
@@ -193,11 +192,11 @@ A_star_node::setG(int G, A_star_node* from) {
 }
 
 void
-A_star_node::setParent(NTP p) {
-  this->parent = p;
+A_star_node::setParent(NT nt) {
+  this->parent = nt;
 }
 
-NTP
+NT
 A_star_node::getParent() {
   return this->parent;
 }

@@ -1,3 +1,4 @@
+//TODO: makefile
 #ifndef _ALG_H_
 #define _ALG_H_
 
@@ -7,8 +8,9 @@
 #include <tuple>
 using namespace std;
 
-#define NT tuple<int, int, int>
-#define NTP tuple<int, int, int>*
+#define NT tuple<int, int, int>   //node tuple
+#define NTP tuple<int, int, int>* //node tuple pointer
+#define IT make_tuple(-1, -1, -1) //invalid tuple
 
 enum nodeType { none, shape, obstacle }
 
@@ -46,19 +48,19 @@ class A_star_node {
     void setH();
     void setG();
     void setType(nodeType);
-    void setParent(NTP);
+    void setParent(NT);
     void setOpen(bool);
 
     int getF();
     nodeType getType();
-    NTP getParent();
+    NT getParent();
     bool getOpen();
   private:
     bool open;
     int H;
     int G;
     nodeType type;
-    NTP parent;
+    NT parent;
 }
 
 #endif
