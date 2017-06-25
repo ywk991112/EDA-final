@@ -306,7 +306,15 @@ void netParser::global_routing()
   //TODO: construct wires by edges
 }
 
-void netParser::detailed_routing()
+void netParser::detailed_routing(filename)
 {
-  
+  for(all edge) { //TODO
+    A_star* a = new A_star(this->width, this->length, this->height, this->viaCost, filename);
+    for(all shape) setType;
+    for(all obstacle) setType;
+    a.setTarget(edge.target); //TODO
+    a.setSource(edge.source); //TODO
+    a.runAlgorithm(); //TODO
+    delete a;
+  }
 }

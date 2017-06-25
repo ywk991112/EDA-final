@@ -1,7 +1,6 @@
 #define DEBUG
 
 #include <iostream>
-#include <iostream>
 #include <climits>
 #include <cmath>
 #include <iomanip>
@@ -29,6 +28,7 @@ int Node::weight_to_node(Node* n)
 	{
 		weight += this->LLy - n->URy;
 	}
+	//weight += (this->viaCost * abs(this->Layer - n->Layer));
 	weight += abs(this->Layer - n->Layer);
 	return weight;
 }
@@ -205,8 +205,3 @@ void Graph::PRIM_build_edges()
 		this->edges.push_back(new_edge);
 	}
 }
-
-
-
-
-

@@ -13,12 +13,14 @@ class Node
 			URx = shape[2];
 			URy = shape[3];
 			Layer = shape[4] * viaCost;
+      viaCost = viaCost;
 		};
 		~Node() {};
 		int weight_to_node(Node*);
 	private:
 		int Layer;
 		int LLx, LLy, URx, URy;
+    int viaCost;
 };
 
 class Edge
