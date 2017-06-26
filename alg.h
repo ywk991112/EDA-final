@@ -13,6 +13,7 @@ using namespace std;
 #define IT make_tuple(-1, -1, -1) //invalid tuple
 
 enum nodeType { none, shape, obstacle }
+enum lineType { hLine, vLine, via, init }
 
 class A_star {
   public:
@@ -29,13 +30,17 @@ class A_star {
     //sort open list
     void compareNode(NT, NT);
     void runAlgorithm();
-    void writeFile();
+    //write file
+    void writeH(ofstream, NT, NT);
+    void writeV(ofstream, NT, NT);
+    void writeVia(ofstream, NT, NT);
+    NT lineRule(NT);
   private:
     int width;
     int length;
     int n_layer;
     int viaCost;
-    ofstream os;
+    const char* filename;
     NT target;
     A_star_node*** graph;
     vector< NT > openList;
@@ -50,12 +55,15 @@ class A_star_node {
     void setType(nodeType);
     void setParent(NT);
     void setOpen(bool);
+    void setShapeEdge(bool);
 
     int getF();
     nodeType getType();
     NT getParent();
     bool getOpen();
+    bool getShapeEdge():
   private:
+    bool shapeEdge;
     bool open;
     int H;
     int G;

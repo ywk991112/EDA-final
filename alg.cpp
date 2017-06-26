@@ -15,7 +15,7 @@ A_star::A_star(int width, int length, int n_layer, int viaCost, const char* file
       this->graph[i][j] = new A_star_node[n_layer];
     }
   }
-  this->os.open(filename, ios::out | ios::app);
+  this->filename = filename;
   this->viaCost = viaCost;
 }
 
@@ -37,6 +37,20 @@ A_star::setNodeType(int llx, int lly, int urx, int ury, int layer, nodeType t) {
     for(int j = lly; j <= ury; i++)
       //TODO: layer
       this->graph[i][j][layer-1].setType(t);
+  }
+  if(nodeType = shape) {
+    int fixedX = llx;
+    for(int i = lly; i <= ury; i++) 
+      this-graph[fixedX][i][layer-1].setShapeEdge(true);
+    fixedX = urx;
+    for(int i = lly; i <= ury; i++) 
+      this-graph[fixedX][i][layer-1].setShapeEdge(true);
+    int fixedY = lly;
+    for(int i = llx; i <= urx; i++)
+      this-graph[i][fixedY][layer-1].setShapeEdge(true);
+    fixedY = ury;
+    for(int i = llx; i <= urx; i++)
+      this-graph[i][fixedY][layer-1].setShapeEdge(true);
   }
 }
 
@@ -121,8 +135,83 @@ A_star::compareNode(NT a, NT b) {
   int ax = get<0>(a), ay = get<1>(a), az = get<2>(a);
   int bx = get<0>(b), by = get<1>(b), bz = get<2>(b);
   int aF = graph[ax][ay][az].getF();
-  int bF = grbph[bx][by][bz].getF();
+  int bF = graph[bx][by][bz].getF();
   return (aF > bF);
+}
+
+void
+A_star::writeH(ofstream ofs, NT a, NT b) {
+  NT small = (a < b)? a : b;
+  NT large = (a < b)? b : a;
+  ofs << "H-line M" << (get<2>(small) + 1) <<" (" << get<0>(small) << ","
+    << get<1>(small) << ") (" << get<0>(large) << "," << get<1>(large) << ")" << endl;
+}
+
+void
+A_star::writeV(ofstream ofs, NT a, NT b) {
+  NT small = (a < b)? a : b;
+  NT large = (a < b)? b : a;
+  ofs << "V-line M" << (get<2>(small) + 1) <<" (" << get<0>(small) << ","
+    << get<1>(small) << ") (" << get<0>(large) << "," << get<1>(large) << ")" << endl;
+}
+
+void
+A_star::writeVia(ofstream ofs, NT a, NT b) {
+  NT small = (a < b)? a : b;
+  ofs << "Via V" << (get<2>(small) + 1) <<" (" << get<0>(small) << ","
+    << get<1>(small) << ")" << endl;
+}
+
+// return next start node, return invalid tuple if terminate 
+NT
+A_star::lineRule(NT start) {
+  lineType lt(init);
+  NT tem = start, end = start->getParent();
+  int change = 0;
+  ofstream ofs;
+  ofs.open(this->filename, ios::out | ios::app);
+  while(1) {
+    A_star_node* n = &graph[get<0>(end)][get<1>(end)][get<2>(end)];
+    if(n->getParent() == IT) 
+      cerr << "line parent should not be invalid node" << endl;
+    if(abs(get<0>(tem) - get<0>(end)) == 1) {
+      if(lt != hLine)
+        change = ((change + 1) % 2);
+      if(!change) {
+        writeH(ofs, start, tem);
+        return tem;
+      }
+      if(n->getShapeEdge()) {
+        writeH(ofs, start, end);
+        return IT;
+      }
+    } else if(abs(get<1>(tem) - get<1>(end)) == 1) {
+      if(lt != vLine)
+        change = ((change + 1) % 2);
+      if(!change) {
+        writeV(ofs, start, tem);
+        return tem;
+      }
+      if(n->getShapeEdge()) {
+        writeV(ofs, start, end);
+        return IT;
+      }
+    } else if(abs(get<2>(tem) - get<2>(end)) == 1) {
+      if(lt != via)
+        change = ((change + 1) % 2);
+      if(!change) {
+        writeVia(ofs, start, tem);
+        return tem;
+      }
+      if(n->getShapeEdge()) {
+        writeVia(ofs, start, end);
+        return IT;
+      }
+      return end;
+    } else {
+      cerr << "no such case in line rule" << endl;
+    }
+  }
 }
 
 void
@@ -134,9 +223,17 @@ A_star::runAlgorithm() {
     if(forAllNeighbor(start)) break;
   }
   //backtrace
-  //TODO:find port
-
-  //TODO:output the file
+  //find port
+  NT port;
+  A_star_node* n = &graph[get<0>(target)][get<1>(target)][get<2>(target)];
+  while(!n->getShapeEdge()) {
+    port = n->getParent();
+    n = &graph[get<0>(port1)][get<1>(port1)][get<2>(port1)]
+  }
+  //output the file
+  while(port != IT) {
+    port = lineRule(port);
+  }
 }
 
 /************************************
@@ -147,6 +244,7 @@ A_star_node::A_star_node() {
   this->type = none;
   this->parent = IT;
   this->H = INT_MAX; this->G = INT_MAX;
+  this->shapeEdge = false;
 }
 
 A_star_node::~A_star_node() {
@@ -199,4 +297,14 @@ A_star_node::setParent(NT nt) {
 NT
 A_star_node::getParent() {
   return this->parent;
+}
+
+void
+A_star_node::setShapeEdge(bool b) {
+  this->shapeEdge = b;
+}
+
+bool
+A_star_node::getShapeEdge() {
+  return this->shapeEdge;
 }
