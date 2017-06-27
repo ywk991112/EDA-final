@@ -325,15 +325,36 @@ void netParser::global_routing()
 #endif
 }
 
-void netParser::detailed_routing(filename)
-{
-  for(all edge) { //TODO
-    A_star* a = new A_star(this->width, this->length, this->height, this->viaCost, filename);
-    for(all shape) setType;
-    for(all obstacle) setType;
-    a.setTarget(edge.target); //TODO
-    a.setSource(edge.source); //TODO
-    a.runAlgorithm(); //TODO
+void netParser::detailed_routing(const char* filename) {
+  for(int i = 0; i < shape_graph.get_edge_table().size(); ++i) {
+    int node1 = shape_graph.get_edge_table()[i][0];
+    int node2 = shape_graph.get_edge_table()[i][1];
+    int llx1 = Shapes_vector[node1].node_parameters()[0];
+    int lly1 = Shapes_vector[node1].node_parameters()[1];
+    int urx1 = Shapes_vector[node1].node_parameters()[2];
+    int ury1 = Shapes_vector[node1].node_parameters()[3];
+    int layer1 = Shapes_vector[node1].node_parameters()[4]
+    int llx2 = Shapes_vector[node2].node_parameters()[0];
+    int lly2 = Shapes_vector[node2].node_parameters()[1];
+    int urx2 = Shapes_vector[node2].node_parameters()[2];
+    int ury2 = Shapes_vector[node2].node_parameters()[3]; 
+    int layer2 = Shapes_vector[node2].node_parameters()[4];
+         
+    A_star a(this->width, this->length, this->height, this->viacost, filename);
+    for(all shape) settype(shape);
+    for(all obstacle) settype(obstacle);
+    a.settarget(edge.target); 
+    a.setsource(edge.source); 
+    a.runalgorithm(); 
     delete a;
   }
+  //for(all edge) { //TODO
+    //a_star* a = new a_star(this->width, this->length, this->height, this->viacost, filename);
+    //for(all shape) settype;
+    //for(all obstacle) settype;
+    //a.settarget(edge.target); //todo
+    //a.setsource(edge.source); //todo
+    //a.runalgorithm(); //todo
+    //delete a;
+  //}
 }

@@ -42,7 +42,7 @@ class netParser{
     void global_routing();
   
     //detailed routing: determine port, run dijkstra
-    void detailed_routing();
+    void detailed_routing(const char*);
 
   private:
     int width;
