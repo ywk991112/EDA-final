@@ -11,7 +11,7 @@ using namespace std;
 //return the node_parameters of the block
 int* Block::node_parameters()
 {
-  int* node_parameters = new int[3];
+  int* node_parameters = new int[5];
   node_parameters[0] = LLx;
   node_parameters[1] = LLy;
   node_parameters[2] = URx;
@@ -303,7 +303,25 @@ void netParser::global_routing()
   //solve MST by Prim
   shape_graph.PRIM_build_edges();
   
-  //TODO: construct wires by edges
+#ifdef DEBUG
+  cout << "\nThe edge table\n";
+  {
+    for(int i = 0; i < shape_graph.get_edge_table().size(); ++i)
+    {
+      int node1 = shape_graph.get_edge_table()[i][0];
+      int node2 = shape_graph.get_edge_table()[i][1];
+      cout << "connect shape " << node1 << " which is located at ("
+           << Shapes_vector[node1].node_parameters()[0] << "," << Shapes_vector[node1].node_parameters()[1] << ")("
+           << Shapes_vector[node1].node_parameters()[2] << "," << Shapes_vector[node1].node_parameters()[3] << ")"
+           << " layer " << Shapes_vector[node1].node_parameters()[4]
+           << " and shape " << node1 << " which is located at ("
+           << Shapes_vector[node2].node_parameters()[0] << "," << Shapes_vector[node2].node_parameters()[1] << ")("
+           << Shapes_vector[node2].node_parameters()[2] << "," << Shapes_vector[node2].node_parameters()[3] << ")"
+           << " layer " << Shapes_vector[node2].node_parameters()[4] <<endl;
+           
+    }
+  }
+#endif
 }
 
 void netParser::detailed_routing(filename)
