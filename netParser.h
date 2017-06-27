@@ -62,6 +62,7 @@ class netParser{
     vector<Block> Vias_vector;
     vector<Block> Obstacles_vector;
     vector<Block> wires_vector;
+    vector<int*> global_wire_vector;
 };
 
 #endif
