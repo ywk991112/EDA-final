@@ -205,3 +205,13 @@ void Graph::PRIM_build_edges()
 		this->edges.push_back(new_edge);
 	}
 }
+
+vector<int*> Graph::get_edge_table()
+{
+	vector<int*> table;
+	for(int i = 0; i < edges.size(); ++i)
+	{
+		table.push_back(edges[i].get_node());
+	}
+	return table;
+}
