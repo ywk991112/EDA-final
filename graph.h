@@ -28,6 +28,7 @@ class Edge
 	public:
 		Edge(int, int);
 		~Edge() {};
+		int* get_node();
 	private:
 		int node[2];
 };
@@ -44,6 +45,7 @@ class Graph
 		void set_weight(int, int, int);
 		void print_weight();
 		void PRIM_build_edges();
+		vector<int*> get_edge_table();
 	private:
 		int nShape;
 		vector<Node> nodes;
