@@ -45,7 +45,7 @@ class Graph
 		void set_weight(int, int, int);
 		void print_weight();
 		void PRIM_build_edges();
-		vector<int*> get_edge_table();
+		void get_edge_table(vector<pair<int, int>>&);
 	private:
 		int nShape;
 		vector<Node> nodes;
