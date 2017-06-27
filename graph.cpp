@@ -39,6 +39,11 @@ Edge::Edge(int n1, int n2)
 	node[1] = n2;
 }
 
+int* Edge::get_node()
+{
+	return node;
+}
+
 Graph::Graph(int n)
 {
 	this->nShape = n;
