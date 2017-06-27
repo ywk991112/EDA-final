@@ -308,6 +308,7 @@ void netParser::global_routing()
   {
     for(int i = 0; i < shape_graph.get_edge_table().size(); ++i)
     {
+      this->global_wire_vector.push_back(shape_graph.get_edge_table()[i]);
       int node1 = shape_graph.get_edge_table()[i][0];
       int node2 = shape_graph.get_edge_table()[i][1];
       cout << "connect shape " << node1 << " which is located at ("
