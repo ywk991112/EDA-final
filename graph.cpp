@@ -206,8 +206,11 @@ void Graph::PRIM_build_edges()
 	//construct edges
 	for(int i = 1; i < nodes.size(); ++i)
 	{
-		Edge new_edge(i, predecessor[i]);
-		this->edges.push_back(new_edge);
+		if(key[i] != 0)
+		{
+			Edge new_edge(i, predecessor[i]);
+			this->edges.push_back(new_edge);
+		}
 	}
 }
 
