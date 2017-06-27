@@ -214,12 +214,11 @@ void Graph::PRIM_build_edges()
 	}
 }
 
-vector<int*> Graph::get_edge_table()
+void Graph::get_edge_table(vector<pair<int, int>>& table)
 {
-	vector<int*> table;
 	for(int i = 0; i < edges.size(); ++i)
 	{
-		table.push_back(edges[i].get_node());
+		pair<int, int> tmp(edges[i].get_node()[0], edges[i].get_node()[1]);
+		table.push_back(tmp);
 	}
-	return table;
 }
