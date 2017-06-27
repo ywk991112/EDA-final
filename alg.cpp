@@ -1,12 +1,16 @@
 #include <iostream>
 #include <stdlib.h>
 #include <algorithm>
+#include <climits>
+#include <fstream>
 #include "alg.h"
 using namespace std;
 /************************************
  *           A* algorithm           *
  ************************************/
-A_star::A_star(int width, int length, int n_layer, int viaCost, const char* filename) {
+A_star::A_star(int width, int length, int n_layer, int viaCost, const char* filename) 
+  :filename(filename)
+{
   this->width = width; this->length = length; this->n_layer = n_layer;
   this->graph = new A_star_node**[width];
   for(int i = 0; i < width; i++) {
@@ -15,7 +19,6 @@ A_star::A_star(int width, int length, int n_layer, int viaCost, const char* file
       this->graph[i][j] = new A_star_node[n_layer];
     }
   }
-  this->filename = filename;
   this->viaCost = viaCost;
 }
 
@@ -27,8 +30,6 @@ A_star::~A_star() {
     delete [] this->graph[i];
   }
   delete [] this->graph;
-
-  this->os.close();
 }
 
 void
@@ -38,26 +39,26 @@ A_star::setNodeType(int llx, int lly, int urx, int ury, int layer, nodeType t) {
       //TODO: layer
       this->graph[i][j][layer-1].setType(t);
   }
-  if(nodeType = shape) {
+  if(t == shape) {
     int fixedX = llx;
     for(int i = lly; i <= ury; i++) 
-      this-graph[fixedX][i][layer-1].setShapeEdge(true);
+      this->graph[fixedX][i][layer-1].setShapeEdge(true);
     fixedX = urx;
     for(int i = lly; i <= ury; i++) 
-      this-graph[fixedX][i][layer-1].setShapeEdge(true);
+      this->graph[fixedX][i][layer-1].setShapeEdge(true);
     int fixedY = lly;
     for(int i = llx; i <= urx; i++)
-      this-graph[i][fixedY][layer-1].setShapeEdge(true);
+      this->graph[i][fixedY][layer-1].setShapeEdge(true);
     fixedY = ury;
     for(int i = llx; i <= urx; i++)
-      this-graph[i][fixedY][layer-1].setShapeEdge(true);
+      this->graph[i][fixedY][layer-1].setShapeEdge(true);
   }
 }
 
 void
 A_star::push2OpenList(NT t) {
   A_star_node* n = &graph[get<0>(t)][get<1>(t)][get<2>(t)];
-  if(n->open) return; //node is already in open list
+  if(n->getOpen()) return; //node is already in open list
   n->setOpen(true);
   openList.push_back(t);
 }
@@ -67,7 +68,7 @@ A_star::setTarget(int target_x, int target_y, int target_z) {
   target = make_tuple(target_x, target_y, target_z);
   for(int i = 0; i < this->width; i++) {
     for(int j = 0; j < this->length; j++) {
-      for(int k = 0; k < this->height; k++) {
+      for(int k = 0; k < this->n_layer; k++) {
         int x_dif = abs(target_x - i);
         int y_dif = abs(target_y - j);
         int z_dif = abs(target_z - k);
@@ -87,7 +88,7 @@ A_star::setSource(int x, int y, int z) {
  **************************************/
 // return true if update a target node
 bool
-A_star::updateG(NT t, int G, NT* parent) {
+A_star::updateG(NT t, int G, NT parent) {
   push2OpenList(t);
   A_star_node* n = &graph[get<0>(t)][get<1>(t)][get<2>(t)];
   n->setG(G, parent);
@@ -101,46 +102,38 @@ bool
 A_star::checkValid(NT t, int G, NT parent) {
   //check out of range
   int x = get<0>(t), y = get<1>(t), z = get<2>(t);
-  if(x < 0 || y < 0 || z < 0 || x >= width || y >= length || z >= height) //TODO:check width, length, height in code >= not >
+  if(x < 0 || y < 0 || z < 0 || x >= width || y >= length || z >= n_layer) //TODO:check width, length, height in code >= not >
     return false;
   //check obstacle
   if(graph[x][y][z].getType() == obstacle)
     return false;
-  return update(t, G, parent);
+  return updateG(t, G, parent);
 }
 
 bool
 A_star::forAllNeighbor(NT t) {
+  A_star_node* n = &graph[get<0>(t)][get<1>(t)][get<2>(t)];
   vector< NT > same_layer;
   vector< NT > dif_layer;
-  same_layer.push_back(make_tuple(get<0>(t+1), get<1>(t), get<2>(t)));
-  same_layer.push_back(make_tuple(get<0>(t-1), get<1>(t), get<2>(t)));
-  same_layer.push_back(make_tuple(get<0>(t), get<1>(t+1), get<2>(t)));
-  same_layer.push_back(make_tuple(get<0>(t), get<1>(t-1), get<2>(t)));
-  dif_layer.push_back(make_tuple(get<0>(t), get<1>(t), get<2>(t+1)));
-  dif_layer.push_back(make_tuple(get<0>(t), get<1>(t), get<2>(t-1)));
+  same_layer.push_back(make_tuple(get<0>(t)+1, get<1>(t), get<2>(t)));
+  same_layer.push_back(make_tuple(get<0>(t)-1, get<1>(t), get<2>(t)));
+  same_layer.push_back(make_tuple(get<0>(t), get<1>(t)+1, get<2>(t)));
+  same_layer.push_back(make_tuple(get<0>(t), get<1>(t)-1, get<2>(t)));
+  dif_layer.push_back(make_tuple(get<0>(t), get<1>(t), get<2>(t)+1));
+  dif_layer.push_back(make_tuple(get<0>(t), get<1>(t), get<2>(t)-1));
   //Only if target, checkValid = true
   for(auto& node : same_layer) {
-    int newG = a->getG() + 1;
+    int newG = n->getG() + 1;
     return checkValid(node, newG, t); 
   }
   for(auto& node : dif_layer) {
-    int newG = a->getG() + this->viaCost;
+    int newG = n->getG() + this->viaCost;
     return checkValid(node, newG, t); 
   }
 }
 
 void
-A_star::compareNode(NT a, NT b) {
-  int ax = get<0>(a), ay = get<1>(a), az = get<2>(a);
-  int bx = get<0>(b), by = get<1>(b), bz = get<2>(b);
-  int aF = graph[ax][ay][az].getF();
-  int bF = graph[bx][by][bz].getF();
-  return (aF > bF);
-}
-
-void
-A_star::writeH(ofstream ofs, NT a, NT b) {
+A_star::writeH(ofstream& ofs, NT a, NT b) {
   NT small = (a < b)? a : b;
   NT large = (a < b)? b : a;
   ofs << "H-line M" << (get<2>(small) + 1) <<" (" << get<0>(small) << ","
@@ -148,7 +141,7 @@ A_star::writeH(ofstream ofs, NT a, NT b) {
 }
 
 void
-A_star::writeV(ofstream ofs, NT a, NT b) {
+A_star::writeV(ofstream& ofs, NT a, NT b) {
   NT small = (a < b)? a : b;
   NT large = (a < b)? b : a;
   ofs << "V-line M" << (get<2>(small) + 1) <<" (" << get<0>(small) << ","
@@ -156,7 +149,7 @@ A_star::writeV(ofstream ofs, NT a, NT b) {
 }
 
 void
-A_star::writeVia(ofstream ofs, NT a, NT b) {
+A_star::writeVia(ofstream& ofs, NT a, NT b) {
   NT small = (a < b)? a : b;
   ofs << "Via V" << (get<2>(small) + 1) <<" (" << get<0>(small) << ","
     << get<1>(small) << ")" << endl;
@@ -166,7 +159,9 @@ A_star::writeVia(ofstream ofs, NT a, NT b) {
 NT
 A_star::lineRule(NT start) {
   lineType lt(init);
-  NT tem = start, end = start->getParent();
+  NT tem = start; 
+  A_star_node* s = &graph[get<0>(start)][get<1>(start)][get<2>(start)];
+  NT end = s->getParent();
   int change = 0;
   ofstream ofs;
   ofs.open(this->filename, ios::out | ios::app);
@@ -212,13 +207,19 @@ A_star::lineRule(NT start) {
       cerr << "no such case in line rule" << endl;
     }
   }
+  ofs.close();
 }
 
 void
 A_star::runAlgorithm() {
   while(!openList.empty()) {
-    sort(openList.begin(), openList.end(), compareNode);
-    A_star_node* start = openList.back();
+    sort(openList.begin(), openList.end(), 
+      [this](NT a, NT b) {
+        return(this->graph[get<0>(a)][get<1>(a)][get<2>(a)].getF() >
+               this->graph[get<0>(b)][get<1>(b)][get<2>(b)].getF()); 
+      }
+    );
+    NT start = openList.back();
     openList.pop_back();
     if(forAllNeighbor(start)) break;
   }
@@ -228,7 +229,7 @@ A_star::runAlgorithm() {
   A_star_node* n = &graph[get<0>(target)][get<1>(target)][get<2>(target)];
   while(!n->getShapeEdge()) {
     port = n->getParent();
-    n = &graph[get<0>(port1)][get<1>(port1)][get<2>(port1)]
+    n = &graph[get<0>(port)][get<1>(port)][get<2>(port)];
   }
   //output the file
   while(port != IT) {
@@ -248,7 +249,6 @@ A_star_node::A_star_node() {
 }
 
 A_star_node::~A_star_node() {
-  delete [] pos;
 }
 
 void
@@ -287,6 +287,11 @@ A_star_node::setG(int G, NT from) {
     this->parent = from;
     this->G = G;
   }
+}
+
+int
+A_star_node::getG() {
+  return this->G;
 }
 
 void

@@ -4,8 +4,10 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <algorithm>
 #include "netParser.h"
 #include "graph.h"
+#include "alg.h"
 using namespace std;
 
 //return the node_parameters of the block
@@ -326,35 +328,54 @@ void netParser::global_routing()
 }
 
 void netParser::detailed_routing(const char* filename) {
-  for(int i = 0; i < shape_graph.get_edge_table().size(); ++i) {
-    int node1 = shape_graph.get_edge_table()[i][0];
-    int node2 = shape_graph.get_edge_table()[i][1];
+  cout << "hao0" << endl;
+  for(int i = 0; i < global_wire_vector.size(); ++i) {
+    int node1 = global_wire_vector[i][0];
+    int node2 = global_wire_vector[i][1];
+  cout << global_wire_vector.size() << endl;
+  cout << Shapes_vector.size() << endl;
+  cout << node1 << endl;
     int llx1 = Shapes_vector[node1].node_parameters()[0];
     int lly1 = Shapes_vector[node1].node_parameters()[1];
     int urx1 = Shapes_vector[node1].node_parameters()[2];
     int ury1 = Shapes_vector[node1].node_parameters()[3];
-    int layer1 = Shapes_vector[node1].node_parameters()[4]
+    int layer1 = Shapes_vector[node1].node_parameters()[4];
+  cout << "hao0" << endl;
     int llx2 = Shapes_vector[node2].node_parameters()[0];
     int lly2 = Shapes_vector[node2].node_parameters()[1];
     int urx2 = Shapes_vector[node2].node_parameters()[2];
     int ury2 = Shapes_vector[node2].node_parameters()[3]; 
     int layer2 = Shapes_vector[node2].node_parameters()[4];
+  cout << "hao0" << endl;
          
-    A_star a(this->width, this->length, this->height, this->viacost, filename);
-    for(all shape) settype(shape);
-    for(all obstacle) settype(obstacle);
-    a.settarget(edge.target); 
-    a.setsource(edge.source); 
-    a.runalgorithm(); 
-    delete a;
+    cout << "hao1" << endl;
+
+    A_star a(this->width, this->length, this->height, this->viaCost, filename); //TODO: width, length, height should start from 1
+    for(int j = 0; j < Shapes_vector.size(); j++) {
+      int sllx = Shapes_vector[j].node_parameters()[0];
+      int slly = Shapes_vector[j].node_parameters()[1];
+      int surx = Shapes_vector[j].node_parameters()[2];
+      int sury = Shapes_vector[j].node_parameters()[3];
+      int slayer = Shapes_vector[j].node_parameters()[4];
+      a.setNodeType(sllx, slly, surx, sury, slayer, shape);
+    }
+    cout << "hao2" << endl;
+    for(int j = 0; j < Obstacles_vector.size(); j++) {
+      int ollx = Obstacles_vector[j].node_parameters()[0];
+      int olly = Obstacles_vector[j].node_parameters()[1];
+      int ourx = Obstacles_vector[j].node_parameters()[2];
+      int oury = Obstacles_vector[j].node_parameters()[3];
+      int olayer = Obstacles_vector[j].node_parameters()[4];
+      ollx = max(0, ollx-this->spacing);
+      olly = max(0, olly-this->spacing);
+      ourx = min(this->width, ourx+this->spacing);
+      oury = min(this->length, oury+this->spacing);
+      a.setNodeType(ollx, olly, ourx, oury, olayer, obstacle);
+    }
+    cout << "hao3" << endl;
+    // for boundary spacing -> obstacle
+    a.setTarget((llx1+urx1)/2, (lly1+ury1)/2, layer1); 
+    a.setSource((llx2+urx2)/2, (lly2+ury2)/2, layer2); 
+    a.runAlgorithm(); 
   }
-  //for(all edge) { //TODO
-    //a_star* a = new a_star(this->width, this->length, this->height, this->viacost, filename);
-    //for(all shape) settype;
-    //for(all obstacle) settype;
-    //a.settarget(edge.target); //todo
-    //a.setsource(edge.source); //todo
-    //a.runalgorithm(); //todo
-    //delete a;
-  //}
 }

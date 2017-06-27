@@ -12,8 +12,10 @@ using namespace std;
 #define NTP tuple<int, int, int>* //node tuple pointer
 #define IT make_tuple(-1, -1, -1) //invalid tuple
 
-enum nodeType { none, shape, obstacle }
-enum lineType { hLine, vLine, via, init }
+enum nodeType { none, shape, obstacle };
+enum lineType { hLine, vLine, via, init };
+
+class A_star_node;
 
 class A_star {
   public:
@@ -24,17 +26,17 @@ class A_star {
     void setTarget(int, int, int);
     void push2OpenList(NT t);
     //for all neighbor, update G value
-    bool updateG(NT, int, A_star_node*);
-    bool checkValid(NT, int, A_star_node*);
+    bool updateG(NT, int, NT);
+    bool checkValid(NT, int, NT);
     bool forAllNeighbor(NT);
     //sort open list
-    void compareNode(NT, NT);
     void runAlgorithm();
     //write file
-    void writeH(ofstream, NT, NT);
-    void writeV(ofstream, NT, NT);
-    void writeVia(ofstream, NT, NT);
+    void writeH(ofstream&, NT, NT);
+    void writeV(ofstream&, NT, NT);
+    void writeVia(ofstream&, NT, NT);
     NT lineRule(NT);
+
   private:
     int width;
     int length;
@@ -44,24 +46,25 @@ class A_star {
     NT target;
     A_star_node*** graph;
     vector< NT > openList;
-}
+};
 
 class A_star_node {
   public:
     A_star_node();
     ~A_star_node();
-    void setH();
-    void setG();
+    void setH(int, int, int, int);
+    void setG(int, NT);
     void setType(nodeType);
     void setParent(NT);
     void setOpen(bool);
     void setShapeEdge(bool);
 
     int getF();
+    int getG();
     nodeType getType();
     NT getParent();
     bool getOpen();
-    bool getShapeEdge():
+    bool getShapeEdge();
   private:
     bool shapeEdge;
     bool open;
@@ -69,6 +72,6 @@ class A_star_node {
     int G;
     nodeType type;
     NT parent;
-}
+};
 
 #endif

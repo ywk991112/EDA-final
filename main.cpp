@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   netMgr.global_routing();
 
   cout << "Start detailed routing\n";
-  netMgr.detailed_routing();
+  netMgr.detailed_routing(argv[2]);
   return 0;
 
 }
