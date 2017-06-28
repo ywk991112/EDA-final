@@ -305,26 +305,8 @@ void netParser::global_routing()
   //solve MST by Prim
   shape_graph.PRIM_build_edges();
   
-#ifdef DEBUG
   cout << "\nThe edge table\n";
-  {
-    for(int i = 0; i < shape_graph.get_edge_table().size(); ++i)
-    {
-      this->global_wire_vector.push_back(shape_graph.get_edge_table()[i]);
-      int node1 = shape_graph.get_edge_table()[i][0];
-      int node2 = shape_graph.get_edge_table()[i][1];
-      cout << "connect shape " << node1 << " which is located at ("
-           << Shapes_vector[node1].node_parameters()[0] << "," << Shapes_vector[node1].node_parameters()[1] << ")("
-           << Shapes_vector[node1].node_parameters()[2] << "," << Shapes_vector[node1].node_parameters()[3] << ")"
-           << " layer " << Shapes_vector[node1].node_parameters()[4]
-           << " and shape " << node1 << " which is located at ("
-           << Shapes_vector[node2].node_parameters()[0] << "," << Shapes_vector[node2].node_parameters()[1] << ")("
-           << Shapes_vector[node2].node_parameters()[2] << "," << Shapes_vector[node2].node_parameters()[3] << ")"
-           << " layer " << Shapes_vector[node2].node_parameters()[4] <<endl;
-           
-    }
-  }
-#endif
+  shape_graph.get_edge_table(global_wire_vector);
 }
 
 void netParser::detailed_routing(const char* filename) {
