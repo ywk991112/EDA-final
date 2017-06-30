@@ -1,4 +1,3 @@
-//TODO: makefile
 #ifndef _ALG_H_
 #define _ALG_H_
 
@@ -21,7 +20,7 @@ class A_star {
   public:
     A_star(int, int, int, int, const char*);
     ~A_star();
-    void setNodeType(int, int, int, int, int, nodeType);
+    void setNodeType(int, int, int, int, int, nodeType, int);
     void setSource(int, int, int);
     void setTarget(int, int, int);
     void push2OpenList(NT t);
@@ -30,12 +29,17 @@ class A_star {
     bool checkValid(NT, int, NT);
     bool forAllNeighbor(NT);
     //sort open list
-    void runAlgorithm();
+    void runAlgorithm(int, int);
     //write file
     void writeH(ofstream&, NT, NT);
     void writeV(ofstream&, NT, NT);
     void writeVia(ofstream&, NT, NT);
-    NT lineRule(NT);
+    void writeFile(ofstream&, lineType, NT, NT);
+    NT meetShape(NT, int, ofstream&, NT, lineType); 
+    NT lineRule(NT, int);
+
+    //test
+    void testRouting();
 
   private:
     int width;
@@ -54,22 +58,24 @@ class A_star_node {
     ~A_star_node();
     void setH(int, int, int, int);
     void setG(int, NT);
-    void setType(nodeType);
+    void setType(nodeType, int);
     void setParent(NT);
     void setOpen(bool);
-    void setShapeEdge(bool);
+    void setShapeEdge(int);
 
     int getF();
     int getG();
     nodeType getType();
     NT getParent();
     bool getOpen();
-    bool getShapeEdge();
+    int getShapeEdge();
+    int getShapeIdx();
   private:
-    bool shapeEdge;
     bool open;
+    int shapeEdge;
     int H;
     int G;
+    int shapeIdx;
     nodeType type;
     NT parent;
 };

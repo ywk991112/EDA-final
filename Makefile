@@ -11,4 +11,4 @@ netParser.o: netParser.h netParser.cpp
 alg.o: alg.h alg.cpp
 	g++ --std=c++11 -c alg.cpp -o alg.o
 clean:
-	rm -f net_open_finder *.o
+	rm -f net_open_finder *.o out

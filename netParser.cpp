@@ -310,38 +310,31 @@ void netParser::global_routing()
 }
 
 void netParser::detailed_routing(const char* filename) {
-  cout << "hao0" << endl;
-  for(int i = 0; i < global_wire_vector.size(); ++i) {
-    int node1 = global_wire_vector[i][0];
-    int node2 = global_wire_vector[i][1];
-  cout << global_wire_vector.size() << endl;
-  cout << Shapes_vector.size() << endl;
-  cout << node1 << endl;
+  //for(int i = 0; i < global_wire_vector.size(); ++i) {
+  for(int i = 2; i < global_wire_vector.size(); ++i) {
+    int node1 = global_wire_vector[i].first;
+    int node2 = global_wire_vector[i].second;
     int llx1 = Shapes_vector[node1].node_parameters()[0];
     int lly1 = Shapes_vector[node1].node_parameters()[1];
     int urx1 = Shapes_vector[node1].node_parameters()[2];
     int ury1 = Shapes_vector[node1].node_parameters()[3];
     int layer1 = Shapes_vector[node1].node_parameters()[4];
-  cout << "hao0" << endl;
     int llx2 = Shapes_vector[node2].node_parameters()[0];
     int lly2 = Shapes_vector[node2].node_parameters()[1];
     int urx2 = Shapes_vector[node2].node_parameters()[2];
     int ury2 = Shapes_vector[node2].node_parameters()[3]; 
     int layer2 = Shapes_vector[node2].node_parameters()[4];
-  cout << "hao0" << endl;
          
-    cout << "hao1" << endl;
-
     A_star a(this->width, this->length, this->height, this->viaCost, filename); //TODO: width, length, height should start from 1
+
     for(int j = 0; j < Shapes_vector.size(); j++) {
       int sllx = Shapes_vector[j].node_parameters()[0];
       int slly = Shapes_vector[j].node_parameters()[1];
       int surx = Shapes_vector[j].node_parameters()[2];
       int sury = Shapes_vector[j].node_parameters()[3];
       int slayer = Shapes_vector[j].node_parameters()[4];
-      a.setNodeType(sllx, slly, surx, sury, slayer, shape);
+      a.setNodeType(sllx, slly, surx, sury, slayer, shape, j);
     }
-    cout << "hao2" << endl;
     for(int j = 0; j < Obstacles_vector.size(); j++) {
       int ollx = Obstacles_vector[j].node_parameters()[0];
       int olly = Obstacles_vector[j].node_parameters()[1];
@@ -352,12 +345,12 @@ void netParser::detailed_routing(const char* filename) {
       olly = max(0, olly-this->spacing);
       ourx = min(this->width, ourx+this->spacing);
       oury = min(this->length, oury+this->spacing);
-      a.setNodeType(ollx, olly, ourx, oury, olayer, obstacle);
+      a.setNodeType(ollx, olly, ourx, oury, olayer, obstacle, -1);
     }
-    cout << "hao3" << endl;
     // for boundary spacing -> obstacle
-    a.setTarget((llx1+urx1)/2, (lly1+ury1)/2, layer1); 
-    a.setSource((llx2+urx2)/2, (lly2+ury2)/2, layer2); 
-    a.runAlgorithm(); 
+    a.setTarget((llx1+urx1)/2, (lly1+ury1)/2, layer1-1); 
+    a.setSource((llx2+urx2)/2, (lly2+ury2)/2, layer2-1); 
+    cout << "node" << node1 << " " << node2 << endl;
+    a.runAlgorithm(node1, node2); 
   }
 }
