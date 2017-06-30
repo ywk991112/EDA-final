@@ -310,8 +310,7 @@ void netParser::global_routing()
 }
 
 void netParser::detailed_routing(const char* filename) {
-  //for(int i = 0; i < global_wire_vector.size(); ++i) {
-  for(int i = 2; i < global_wire_vector.size(); ++i) {
+  for(int i = 0; i < global_wire_vector.size(); ++i) {
     int node1 = global_wire_vector[i].first;
     int node2 = global_wire_vector[i].second;
     int llx1 = Shapes_vector[node1].node_parameters()[0];

@@ -359,7 +359,6 @@ A_star::runAlgorithm(int targetIdx, int sourceIdx) {
   while(port != IT) {
     port = lineRule(port, sourceIdx);
   }
-  exit(0);
 }
 
 /************************************
